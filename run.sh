@@ -2,7 +2,7 @@ python main.py \
     --task train \
     --inference_checkpoint "" \
     --model TrajectoryTransformer2 \
-    --normalize 1 \
+    --normalize false \
     --batch_size 32 \
     --num_epochs 100 \
     --lr 1e-4 \

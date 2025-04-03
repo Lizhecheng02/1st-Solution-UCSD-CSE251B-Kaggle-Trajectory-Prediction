@@ -208,7 +208,7 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default="train", help="Task to perform: train or inference")
     parser.add_argument("--inference_checkpoint", type=str, default=None, help="Checkpoint for inference")
     parser.add_argument("--model", type=str, default="TrajectoryTransformer2", help="Model to use for training")
-    parser.add_argument("--normalize", type=bool, default=True, help="Whether to normalize the data")
+    parser.add_argument("--normalize", type=lambda x: x.lower() == "true", default=True, help="Whether to normalize the data")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for training")
     parser.add_argument("--num_epochs", type=int, default=250, help="Number of epochs for training")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for training")
