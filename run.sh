@@ -1,10 +1,10 @@
 python main.py \
     --task train \
-    --inference_checkpoint \
+    --inference_checkpoint "" \
     --model TrajectoryTransformer2 \
     --batch_size 32 \
     --num_epochs 100 \
-    --lr 1e-3 \
+    --lr 1e-4 \
     --seed 42 \
     --input_dim 5 \
     --d_model 128 \
@@ -12,7 +12,7 @@ python main.py \
     --num_encoder_layers 4 \
     --num_decoder_layers 4 \
     --dim_feedforward 512 \
-    --dropout 0.1 \
+    --dropout 0.2 \
     --max_len 50 \
     --pred_steps 60 \
     --num_agent_types 10 \

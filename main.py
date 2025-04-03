@@ -9,6 +9,8 @@ import argparse
 import time
 import os
 import json
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def train(args):
@@ -115,7 +117,7 @@ def train(args):
 
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=FACTOR, patience=PATIENCE, verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=FACTOR, patience=PATIENCE)
 
     num_epochs = NUM_EPOCHS
     best_val_loss = float("inf")

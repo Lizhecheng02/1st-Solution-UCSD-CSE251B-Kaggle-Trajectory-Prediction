@@ -97,7 +97,7 @@ class TrajectoryTransformer1(nn.Module):
         pred_steps=60,
         num_agent_types=10
     ):
-        super(TrajectoryTransformer2, self).__init__()
+        super(TrajectoryTransformer1, self).__init__()
 
         self.d_model = d_model
         self.pred_steps = pred_steps
@@ -150,7 +150,12 @@ class TrajectoryTransformer1(nn.Module):
         type_embeddings = self.agent_type_embedding(agent_types).unsqueeze(1).expand(-1, seq_len, -1)
         agent_embeddings = agent_embeddings + type_embeddings
         agent_embeddings = self.positional_encoding(agent_embeddings)
+
         agent_embeddings = agent_embeddings.view(batch_size, num_agents, seq_len, -1)
+
+        if valid_agents_mask is not None:
+            mask = (~valid_agents_mask).unsqueeze(-1).unsqueeze(-1)
+            agent_embeddings = agent_embeddings.masked_fill(mask, 0.0)
 
         social_encodings = []
         for t in range(seq_len):
@@ -166,8 +171,6 @@ class TrajectoryTransformer1(nn.Module):
             social_encodings.append(timestep_encoded)
 
         social_encodings = torch.stack(social_encodings, dim=2)
-
-        # ego_encodings = social_encodings[:, 0, :, :]
 
         last_pos = ego_input[:, -1, :2]
         decoder_input = self.decoder_input_embedding(last_pos).unsqueeze(1)
@@ -260,6 +263,10 @@ class TrajectoryTransformer2(nn.Module):
 
         agent_embeddings = agent_embeddings.view(batch_size, num_agents, seq_len, -1)
 
+        if valid_agents_mask is not None:
+            mask = (~valid_agents_mask).unsqueeze(-1).unsqueeze(-1)
+            agent_embeddings = agent_embeddings.masked_fill(mask, 0.0)
+
         social_encodings = []
         for t in range(seq_len):
             timestep_embeddings = agent_embeddings[:, :, t, :]
@@ -303,7 +310,7 @@ class TrajectoryTransformer3(nn.Module):
         pred_steps=60,
         num_agent_types=10
     ):
-        super(TrajectoryTransformer2, self).__init__()
+        super(TrajectoryTransformer3, self).__init__()
 
         self.d_model = d_model
         self.pred_steps = pred_steps
@@ -356,6 +363,10 @@ class TrajectoryTransformer3(nn.Module):
         agent_embeddings = self.positional_encoding(agent_embeddings)
 
         agent_embeddings = agent_embeddings.view(batch_size, num_agents, seq_len, -1)
+
+        if valid_agents_mask is not None:
+            mask = (~valid_agents_mask).unsqueeze(-1).unsqueeze(-1)
+            agent_embeddings = agent_embeddings.masked_fill(mask, 0.0)
 
         social_encodings = []
         for t in range(seq_len):
