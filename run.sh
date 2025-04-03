@@ -1,0 +1,22 @@
+python main.py \
+    --task train \
+    --inference_checkpoint \
+    --model TrajectoryTransformer2 \
+    --batch_size 32 \
+    --num_epochs 100 \
+    --lr 1e-3 \
+    --seed 42 \
+    --input_dim 5 \
+    --d_model 128 \
+    --nhead 8 \
+    --num_encoder_layers 4 \
+    --num_decoder_layers 4 \
+    --dim_feedforward 512 \
+    --dropout 0.1 \
+    --max_len 50 \
+    --pred_steps 60 \
+    --num_agent_types 10 \
+    --factor 0.8 \
+    --patience 50 \
+    --save_dir ./models
+
