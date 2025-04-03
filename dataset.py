@@ -5,18 +5,16 @@ from sklearn.preprocessing import StandardScaler
 
 
 class TrajectoryDataset(Dataset):
-    def __init__(self, data, is_train=True, normalize=True):
+    def __init__(self, data, is_train=True):
         self.data = data
         self.is_train = is_train
-        self.normalize = normalize
         self.num_scenes = data.shape[0]
 
         self.input_steps = 50
         self.pred_steps = 60 if is_train else 0
 
         # Normalize data
-        if self.normalize:
-            self.scalers = self._fit_scalers()
+        self.scalers = self._fit_scalers()
 
     def _fit_scalers(self):
         scalers = {}
@@ -50,9 +48,7 @@ class TrajectoryDataset(Dataset):
 
     def __getitem__(self, idx):
         scene_data = self.data[idx]
-
-        if self.normalize:
-            scene_data = self.normalize_data(scene_data.reshape(1, *scene_data.shape))[0]
+        scene_data = self.normalize_data(scene_data.reshape(1, *scene_data.shape))[0]
 
         input_seq = scene_data[:, :self.input_steps, :]
         ego_input = input_seq[0]

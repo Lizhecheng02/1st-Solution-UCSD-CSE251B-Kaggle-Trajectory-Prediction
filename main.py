@@ -16,7 +16,6 @@ warnings.filterwarnings("ignore")
 def train(args):
     print("Training...")
     MODEL = args.model
-    NORMALIZE = args.normalize
     BATCH_SIZE = args.batch_size
     NUM_EPOCHS = args.num_epochs
     LR = args.lr
@@ -46,9 +45,9 @@ def train(args):
 
     train_size = int(0.8 * len(train_data))
 
-    train_dataset = TrajectoryDataset(train_data[:train_size], is_train=True, normalize=NORMALIZE)
-    val_dataset = TrajectoryDataset(train_data[train_size:], is_train=True, normalize=NORMALIZE)
-    test_dataset = TrajectoryDataset(test_data, is_train=False, normalize=NORMALIZE)
+    train_dataset = TrajectoryDataset(train_data[:train_size], is_train=True)
+    val_dataset = TrajectoryDataset(train_data[train_size:], is_train=True)
+    test_dataset = TrajectoryDataset(test_data, is_train=False)
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
@@ -152,7 +151,6 @@ def inference(args):
     print("Inference...")
 
     SEED = args.seed
-    NORMALIZE = args.normalize
     INPUT_DIM = args.input_dim
     D_MODEL = args.d_model
     NHEAD = args.nhead
@@ -168,7 +166,7 @@ def inference(args):
     device = get_device()
 
     _, test_data = load_data()
-    test_dataset = TrajectoryDataset(test_data, is_train=False, normalize=NORMALIZE)
+    test_dataset = TrajectoryDataset(test_data, is_train=False)
 
     try:
         config_path = os.path.join(os.path.dirname(args.inference_checkpoint), "model_config.json")
@@ -208,7 +206,6 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default="train", help="Task to perform: train or inference")
     parser.add_argument("--inference_checkpoint", type=str, default=None, help="Checkpoint for inference")
     parser.add_argument("--model", type=str, default="TrajectoryTransformer2", help="Model to use for training")
-    parser.add_argument("--normalize", type=lambda x: x.lower() == "true", default=True, help="Whether to normalize the data")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for training")
     parser.add_argument("--num_epochs", type=int, default=250, help="Number of epochs for training")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for training")
