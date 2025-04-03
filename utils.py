@@ -17,7 +17,7 @@ def load_data():
     return train_data, test_data
 
 
-def evaluate_real_world_mse(model, dataloader, dataset, device):
+def evaluate_real_world_mse(model, dataloader, dataset, device, model_type=None):
     model.eval()
     total_loss = 0
     count = 0
@@ -33,7 +33,11 @@ def evaluate_real_world_mse(model, dataloader, dataset, device):
             predictions_np = predictions.cpu().numpy()
 
             preds_denorm = dataset.denormalize_predictions(predictions_np)
-            gt_denorm = dataset.denormalize_predictions(ego_future)
+
+            if model_type != "TrajectoryTransformer3":
+                gt_denorm = dataset.denormalize_predictions(ego_future)
+            else:
+                gt_denorm = ego_future
 
             mse = np.mean((preds_denorm - gt_denorm) ** 2)
             total_loss += mse

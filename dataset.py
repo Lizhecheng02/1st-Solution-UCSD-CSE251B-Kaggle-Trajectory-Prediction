@@ -5,9 +5,10 @@ from sklearn.preprocessing import StandardScaler
 
 
 class TrajectoryDataset(Dataset):
-    def __init__(self, data, is_train=True):
+    def __init__(self, data, is_train=True, model_type=None):
         self.data = data
         self.is_train = is_train
+        self.model_type = model_type
         self.num_scenes = data.shape[0]
 
         self.input_steps = 50
@@ -60,7 +61,11 @@ class TrajectoryDataset(Dataset):
         valid_agents = input_seq[valid_agents_mask]
 
         if self.is_train:
-            ego_future = scene_data[0, self.input_steps:self.input_steps + self.pred_steps, :2]
+            if self.model_type != "TrajectoryTransformer3":
+                ego_future = scene_data[0, self.input_steps:self.input_steps + self.pred_steps, :2]
+            else:
+                raw_scene_data = self.data[idx]
+                ego_future = raw_scene_data[0, self.input_steps:self.input_steps + self.pred_steps, :2]
             return {
                 "ego_input": torch.FloatTensor(ego_input),
                 "all_agents_input": torch.FloatTensor(valid_agents),

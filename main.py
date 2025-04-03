@@ -148,16 +148,42 @@ def train(args):
 
 def inference(args):
     print("Inference...")
+
     SEED = args.seed
+    INPUT_DIM = args.input_dim
+    D_MODEL = args.d_model
+    NHEAD = args.nhead
+    NUM_ENCODER_LAYERS = args.num_encoder_layers
+    NUM_DECODER_LAYERS = args.num_decoder_layers
+    DIM_FEEDFORWARD = args.dim_feedforward
+    DROPOUT = args.dropout
+    MAX_LEN = args.max_len
+    PRED_STEPS = args.pred_steps
+    NUM_AGENT_TYPES = args.num_agent_types
+
     seed_everything(SEED)
     device = get_device()
 
     _, test_data = load_data()
     test_dataset = TrajectoryDataset(test_data, is_train=False)
 
-    config_path = os.path.join(os.path.dirname(args.inference_checkpoint), "model_config.json")
-    with open(config_path, "r") as f:
-        model_config = json.load(f)
+    try:
+        config_path = os.path.join(os.path.dirname(args.inference_checkpoint), "model_config.json")
+        with open(config_path, "r") as f:
+            model_config = json.load(f)
+    except:
+        model_config = {
+            "input_dim": INPUT_DIM,
+            "d_model": D_MODEL,
+            "nhead": NHEAD,
+            "num_encoder_layers": NUM_ENCODER_LAYERS,
+            "num_decoder_layers": NUM_DECODER_LAYERS,
+            "dim_feedforward": DIM_FEEDFORWARD,
+            "dropout": DROPOUT,
+            "max_len": MAX_LEN,
+            "pred_steps": PRED_STEPS,
+            "num_agent_types": NUM_AGENT_TYPES
+        }
 
     if args.model == "TrajectoryTransformer1":
         model = TrajectoryTransformer1(**model_config).to(device)
