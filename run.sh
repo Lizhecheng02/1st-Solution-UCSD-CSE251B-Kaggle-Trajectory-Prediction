@@ -2,9 +2,11 @@ python main.py \
     --task train \
     --inference_checkpoint "" \
     --model TrajectoryTransformer2 \
+    --normalize 1 \
     --batch_size 32 \
     --num_epochs 100 \
     --lr 1e-4 \
+    --max_norm 1.0 \
     --seed 42 \
     --input_dim 5 \
     --d_model 128 \

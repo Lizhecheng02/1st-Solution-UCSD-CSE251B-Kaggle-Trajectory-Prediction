@@ -17,7 +17,7 @@ def load_data():
     return train_data, test_data
 
 
-def evaluate_real_world_mse(model, dataloader, dataset, device, model_type=None):
+def evaluate_real_world_mse(model, dataloader, dataset, device):
     model.eval()
     total_loss = 0
     count = 0
@@ -32,12 +32,12 @@ def evaluate_real_world_mse(model, dataloader, dataset, device, model_type=None)
             predictions = model(ego_input, all_agents_input, valid_agents_mask)
             predictions_np = predictions.cpu().numpy()
 
-            preds_denorm = dataset.denormalize_predictions(predictions_np)
-
-            if model_type != "TrajectoryTransformer3":
-                gt_denorm = dataset.denormalize_predictions(ego_future)
-            else:
+            if hasattr(dataset, "normalize") and not dataset.normalize:
+                preds_denorm = predictions_np
                 gt_denorm = ego_future
+            else:
+                preds_denorm = dataset.denormalize_predictions(predictions_np)
+                gt_denorm = dataset.denormalize_predictions(ego_future)
 
             mse = np.mean((preds_denorm - gt_denorm) ** 2)
             total_loss += mse
@@ -46,7 +46,7 @@ def evaluate_real_world_mse(model, dataloader, dataset, device, model_type=None)
     return total_loss / count
 
 
-def train_epoch(model, dataloader, optimizer, criterion, device, model_type=None):
+def train_epoch(model, dataloader, optimizer, criterion, device, max_norm=1.0, model_type=None):
     model.train()
     total_loss = 0
 
@@ -64,7 +64,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device, model_type=None
 
         loss = criterion(predictions, ego_future)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=max_norm)
         optimizer.step()
 
         total_loss += loss.item()
