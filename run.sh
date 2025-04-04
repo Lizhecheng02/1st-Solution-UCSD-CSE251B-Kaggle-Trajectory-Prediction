@@ -1,10 +1,10 @@
 python main.py \
     --task train \
     --inference_checkpoint "" \
-    --model TrajectoryTransformer2 \
+    --model TrajectoryTransformer1 \
     --batch_size 32 \
     --num_epochs 100 \
-    --lr 5e-4 \
+    --lr 1e-3 \
     --max_norm 1.0 \
     --seed 42 \
     --input_dim 5 \

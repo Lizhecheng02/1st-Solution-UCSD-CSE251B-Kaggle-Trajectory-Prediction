@@ -135,8 +135,9 @@ def train(args):
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
+            torch.save(model.state_dict(), f"{SAVE_DIR}/model-{epoch + 1}.pth")
             torch.save(model.state_dict(), f"{SAVE_DIR}/best-model.pth")
-            print("The best model saved!")
+            print(f"The best model saved! - epoch {epoch + 1}")
         else:
             torch.save(model.state_dict(), f"{SAVE_DIR}/model-{epoch + 1}.pth")
             print("Model saved!")
