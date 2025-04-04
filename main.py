@@ -3,6 +3,7 @@ from utils import load_data, train_epoch, validate, predict, evaluate_real_world
 from init import get_device, seed_everything
 from modules import TrajectoryTransformer1, TrajectoryTransformer2, TrajectoryTransformer3
 from torch.utils.data import DataLoader
+from sklearn.model_selection import KFold
 import torch
 import torch.nn as nn
 import argparse
@@ -10,6 +11,7 @@ import time
 import os
 import json
 import warnings
+import numpy as np
 warnings.filterwarnings("ignore")
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -18,6 +20,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def train(args):
     print("Training...")
     MODEL = args.model
+    FOLD = args.fold
     BATCH_SIZE = args.batch_size
     NUM_EPOCHS = args.num_epochs
     LR = args.lr
@@ -35,7 +38,7 @@ def train(args):
     NUM_AGENT_TYPES = args.num_agent_types
     FACTOR = args.factor
     PATIENCE = args.patience
-    SAVE_DIR = args.save_dir + f"/{MODEL}/{int(time.time())}"
+    SAVE_DIR = args.save_dir + f"/Fold{FOLD}/{MODEL}/{int(time.time())}"
 
     os.makedirs(SAVE_DIR, exist_ok=True)
     print(f"Saving models to {SAVE_DIR}")
@@ -45,10 +48,22 @@ def train(args):
 
     train_data, test_data = load_data()
 
-    train_size = int(0.8 * len(train_data))
+    # train_size = int(0.8 * len(train_data))
 
-    train_dataset = TrajectoryDataset(train_data[:train_size], is_train=True)
-    val_dataset = TrajectoryDataset(train_data[train_size:], is_train=True)
+    # train_dataset = TrajectoryDataset(train_data[:train_size], is_train=True)
+    # val_dataset = TrajectoryDataset(train_data[train_size:], is_train=True)
+
+    kf = KFold(n_splits=5, shuffle=True, random_state=SEED)
+    indices = np.arange(len(train_data))
+    folds = list(kf.split(indices))
+
+    train_idx, val_idx = folds[FOLD]
+    train_split = [train_data[i] for i in train_idx]
+    val_split = [train_data[i] for i in val_idx]
+
+    train_dataset = TrajectoryDataset(train_split, is_train=True)
+    val_dataset = TrajectoryDataset(val_split, is_train=True)
+
     test_dataset = TrajectoryDataset(test_data, is_train=False)
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
@@ -210,6 +225,7 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default="train", help="Task to perform: train or inference")
     parser.add_argument("--inference_checkpoint", type=str, default=None, help="Checkpoint for inference")
     parser.add_argument("--model", type=str, default="TrajectoryTransformer2", help="Model to use for training")
+    parser.add_argument("--fold", type=int, default=0, help="Fold index for cross-validation (0-4)")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for training")
     parser.add_argument("--num_epochs", type=int, default=250, help="Number of epochs for training")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for training")

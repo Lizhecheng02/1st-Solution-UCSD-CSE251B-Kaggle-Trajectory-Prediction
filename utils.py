@@ -1,6 +1,8 @@
 import csv
 import numpy as np
 import torch
+import pandas as pd
+import glob
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
@@ -114,6 +116,7 @@ def predict(model, dataset, device):
 
 def create_submission(predictions, output_file="submission.csv"):
     num_scenes, num_agents, pred_steps, dimensions = predictions.shape
+
     assert num_agents == 1, "Expected exactly 1 ego agent"
     assert dimensions == 2, "Expected 2D predictions (x, y)"
 
@@ -128,3 +131,23 @@ def create_submission(predictions, output_file="submission.csv"):
                 writer.writerow([row_id, x, y])
 
     print(f"Submission file created: {output_file}")
+
+
+def ensemble_submissions(submission_dir, output_path):
+    csv_files = glob.glob(f"{submission_dir}/*.csv")
+
+    merged_df = None
+
+    for _, file in enumerate(csv_files):
+        df = pd.read_csv(file)
+        df = df.set_index("ID")
+        if merged_df is None:
+            merged_df = df
+        else:
+            merged_df += df
+
+    ensembled_df = merged_df / len(csv_files)
+    ensembled_df = ensembled_df.reset_index()
+
+    ensembled_df.to_csv(output_path, index=False)
+    print(f"Ensembled submission saved to {output_path}")
