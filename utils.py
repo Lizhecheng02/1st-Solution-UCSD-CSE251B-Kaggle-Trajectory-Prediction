@@ -32,12 +32,8 @@ def evaluate_real_world_mse(model, dataloader, dataset, device):
             predictions = model(ego_input, all_agents_input, valid_agents_mask)
             predictions_np = predictions.cpu().numpy()
 
-            if hasattr(dataset, "normalize") and not dataset.normalize:
-                preds_denorm = predictions_np
-                gt_denorm = ego_future
-            else:
-                preds_denorm = dataset.denormalize_predictions(predictions_np)
-                gt_denorm = dataset.denormalize_predictions(ego_future)
+            preds_denorm = dataset.denormalize_predictions(predictions_np)
+            gt_denorm = dataset.denormalize_predictions(ego_future)
 
             mse = np.mean((preds_denorm - gt_denorm) ** 2)
             total_loss += mse
@@ -84,7 +80,7 @@ def validate(model, dataloader, criterion, device, model_type=None):
             ego_future = batch["ego_future"].to(device)
 
             if model_type == "TrajectoryTransformer3":
-                predictions = model(ego_input, all_agents_input, valid_agents_mask, ego_future=ego_future)
+                predictions = model(ego_input, all_agents_input, valid_agents_mask, ego_future=None)
             else:
                 predictions = model(ego_input, all_agents_input, valid_agents_mask)
             loss = criterion(predictions, ego_future)

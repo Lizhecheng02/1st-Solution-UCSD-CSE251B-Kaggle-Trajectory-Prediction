@@ -12,6 +12,8 @@ import json
 import warnings
 warnings.filterwarnings("ignore")
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 
 def train(args):
     print("Training...")
