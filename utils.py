@@ -122,7 +122,7 @@ def create_submission(predictions, output_file="submission.csv"):
 
     with open(output_file, mode="w", newline="") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["ID", "x", "y"])
+        writer.writerow(["index", "x", "y"])
 
         for scene_id in range(num_scenes):
             for t in range(pred_steps):
@@ -140,7 +140,7 @@ def ensemble_submissions(submission_dir, output_path):
 
     for _, file in enumerate(csv_files):
         df = pd.read_csv(file)
-        df = df.set_index("ID")
+        df = df.set_index("index")
         if merged_df is None:
             merged_df = df
         else:

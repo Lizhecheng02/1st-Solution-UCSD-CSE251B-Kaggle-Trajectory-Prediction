@@ -2,6 +2,7 @@ python main.py \
     --task train \
     --inference_checkpoint "" \
     --model TrajectoryTransformer1 \
+    --fold 0 \
     --batch_size 32 \
     --num_epochs 100 \
     --lr 1e-3 \
