@@ -111,7 +111,8 @@ class TrajectoryLSTM(nn.Module):
         dropout=0.1,
         max_len=50,
         pred_steps=60,
-        num_agent_types=10
+        num_agent_types=10,
+        weights_initialization=False
     ):
         super(TrajectoryLSTM, self).__init__()
 
@@ -131,7 +132,7 @@ class TrajectoryLSTM(nn.Module):
 
         self.trajectory_decoder = LSTMTrajectoryDecoder(
             input_dim=d_model,
-            hidden_dim=dim_feedforward,
+            hidden_dim=d_model,
             output_dim=2,
             num_layers=num_decoder_layers,
             dropout=dropout
@@ -145,6 +146,10 @@ class TrajectoryLSTM(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(512, 2 * pred_steps)
         )
+
+        if weights_initialization:
+            self.apply(self._init_weights)
+            print("Weights initialized")
 
     def forward(self, ego_input, all_agents_input, valid_agents_mask=None):
         batch_size = ego_input.shape[0]
@@ -192,6 +197,21 @@ class TrajectoryLSTM(nn.Module):
 
         return refined_trajectory
 
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.ones_(m.weight)
+            nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LSTM):
+            for name, param in m.named_parameters():
+                if "weight" in name:
+                    nn.init.kaiming_uniform_(param)
+                elif "bias" in name:
+                    nn.init.zeros_(param)
+
 
 class TrajectoryTransformer1(nn.Module):
     def __init__(
@@ -205,7 +225,8 @@ class TrajectoryTransformer1(nn.Module):
         dropout=0.1,
         max_len=50,
         pred_steps=60,
-        num_agent_types=10
+        num_agent_types=10,
+        weights_initialization=False
     ):
         super(TrajectoryTransformer1, self).__init__()
 
@@ -244,6 +265,10 @@ class TrajectoryTransformer1(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(512, 2 * pred_steps)
         )
+
+        if weights_initialization:
+            self.apply(self._init_weights)
+            print("Weights initialized")
 
     def forward(self, ego_input, all_agents_input, valid_agents_mask=None):
         batch_size = ego_input.shape[0]
@@ -304,6 +329,21 @@ class TrajectoryTransformer1(nn.Module):
 
         return refined_trajectory
 
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.ones_(m.weight)
+            nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LSTM):
+            for name, param in m.named_parameters():
+                if "weight" in name:
+                    nn.init.kaiming_uniform_(param)
+                elif "bias" in name:
+                    nn.init.zeros_(param)
+
 
 class TrajectoryTransformer2(nn.Module):
     def __init__(
@@ -317,7 +357,8 @@ class TrajectoryTransformer2(nn.Module):
         dropout=0.1,
         max_len=50,
         pred_steps=60,
-        num_agent_types=10
+        num_agent_types=10,
+        weights_initialization=False
     ):
         super(TrajectoryTransformer2, self).__init__()
 
@@ -356,6 +397,10 @@ class TrajectoryTransformer2(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(512, 2 * pred_steps)
         )
+
+        if weights_initialization:
+            self.apply(self._init_weights)
+            print("Weights initialized")
 
     def forward(self, ego_input, all_agents_input, valid_agents_mask=None):
         batch_size = ego_input.shape[0]
@@ -405,6 +450,21 @@ class TrajectoryTransformer2(nn.Module):
 
         return refined_trajectory
 
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.ones_(m.weight)
+            nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LSTM):
+            for name, param in m.named_parameters():
+                if "weight" in name:
+                    nn.init.kaiming_uniform_(param)
+                elif "bias" in name:
+                    nn.init.zeros_(param)
+
 
 class TrajectoryTransformer3(nn.Module):
     def __init__(
@@ -418,7 +478,8 @@ class TrajectoryTransformer3(nn.Module):
         dropout=0.1,
         max_len=50,
         pred_steps=60,
-        num_agent_types=10
+        num_agent_types=10,
+        weights_initialization=False
     ):
         super(TrajectoryTransformer3, self).__init__()
 
@@ -457,6 +518,10 @@ class TrajectoryTransformer3(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(512, 2 * pred_steps)
         )
+
+        if weights_initialization:
+            self.apply(self._init_weights)
+            print("Weights initialized")
 
     def forward(self, ego_input, all_agents_input, valid_agents_mask=None, ego_future=None):
         batch_size = ego_input.shape[0]
@@ -516,3 +581,18 @@ class TrajectoryTransformer3(nn.Module):
         refined_trajectory_flat = self.refinement_layer(trajectory_flat)
         refined_trajectory = refined_trajectory_flat.reshape(batch_size, self.pred_steps, 2)
         return refined_trajectory
+
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.ones_(m.weight)
+            nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.LSTM):
+            for name, param in m.named_parameters():
+                if "weight" in name:
+                    nn.init.kaiming_uniform_(param)
+                elif "bias" in name:
+                    nn.init.zeros_(param)

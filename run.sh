@@ -2,10 +2,12 @@ python main.py \
     --task train \
     --inference_checkpoint "" \
     --model TrajectoryTransformer1 \
+    --weights_initialization 'false' \
+    --gpu '0' \
     --fold 0 \
     --batch_size 32 \
-    --num_epochs 100 \
-    --lr 1e-3 \
+    --num_epochs 250 \
+    --lr 5e-4 \
     --max_norm 1.0 \
     --seed 42 \
     --input_dim 5 \
@@ -18,7 +20,7 @@ python main.py \
     --max_len 50 \
     --pred_steps 60 \
     --num_agent_types 10 \
-    --factor 0.8 \
+    --factor 0.5 \
     --patience 50 \
     --save_dir ./models
 

@@ -14,12 +14,15 @@ import warnings
 import numpy as np
 warnings.filterwarnings("ignore")
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
 
 def train(args):
     print("Training...")
+
+    GPU = args.gpu
+    os.environ["CUDA_VISIBLE_DEVICES"] = GPU
+
     MODEL = args.model
+    WEIGHTS_INITIALIZATION = args.weights_initialization
     FOLD = args.fold
     BATCH_SIZE = args.batch_size
     NUM_EPOCHS = args.num_epochs
@@ -58,8 +61,8 @@ def train(args):
     folds = list(kf.split(indices))
 
     train_idx, val_idx = folds[FOLD]
-    train_split = [train_data[i] for i in train_idx]
-    val_split = [train_data[i] for i in val_idx]
+    train_split = np.array([train_data[i] for i in train_idx])
+    val_split = np.array([train_data[i] for i in val_idx])
 
     train_dataset = TrajectoryDataset(train_split, is_train=True)
     val_dataset = TrajectoryDataset(val_split, is_train=True)
@@ -80,7 +83,8 @@ def train(args):
             dropout=DROPOUT,
             max_len=MAX_LEN,
             pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES
+            num_agent_types=NUM_AGENT_TYPES,
+            weights_initialization=WEIGHTS_INITIALIZATION
         ).to(device)
     elif MODEL == "TrajectoryTransformer1":
         model = TrajectoryTransformer1(
@@ -93,7 +97,8 @@ def train(args):
             dropout=DROPOUT,
             max_len=MAX_LEN,
             pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES
+            num_agent_types=NUM_AGENT_TYPES,
+            weights_initialization=WEIGHTS_INITIALIZATION
         ).to(device)
     elif MODEL == "TrajectoryTransformer2":
         model = TrajectoryTransformer2(
@@ -106,7 +111,8 @@ def train(args):
             dropout=DROPOUT,
             max_len=MAX_LEN,
             pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES
+            num_agent_types=NUM_AGENT_TYPES,
+            weights_initialization=WEIGHTS_INITIALIZATION
         ).to(device)
     elif MODEL == "TrajectoryTransformer3":
         model = TrajectoryTransformer3(
@@ -119,7 +125,8 @@ def train(args):
             dropout=DROPOUT,
             max_len=MAX_LEN,
             pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES
+            num_agent_types=NUM_AGENT_TYPES,
+            weights_initialization=WEIGHTS_INITIALIZATION
         ).to(device)
 
     model_config = {
@@ -170,7 +177,7 @@ def train(args):
             torch.save(model.state_dict(), f"{SAVE_DIR}/model-{epoch + 1}.pth")
             print("Model saved!")
 
-    model.load_state_dict(torch.load("{SAVE_DIR}/best_model.pth"))
+    model.load_state_dict(torch.load("{SAVE_DIR}/best-model.pth"))
 
     test_predictions = predict(model, test_dataset, device)
 
@@ -238,6 +245,8 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default="train", help="Task to perform: train or inference")
     parser.add_argument("--inference_checkpoint", type=str, default=None, help="Checkpoint for inference")
     parser.add_argument("--model", type=str, default="TrajectoryTransformer2", help="Model to use for training")
+    parser.add_argument("--gpu", type=str, default="0", help="GPU index to use (e.g., '0')")
+    parser.add_argument("--weights_initialization", type=lambda x: x.lower() in ["true", "1", "yes", "y"], default=False, help="Weight initialization method")
     parser.add_argument("--fold", type=int, default=0, help="Fold index for cross-validation (0-4)")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for training")
     parser.add_argument("--num_epochs", type=int, default=250, help="Number of epochs for training")
