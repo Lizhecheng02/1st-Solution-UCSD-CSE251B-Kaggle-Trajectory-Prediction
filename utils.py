@@ -109,6 +109,9 @@ def predict(model, dataset, device):
             batch_predictions_np = batch_predictions.cpu().numpy()
             denormalized_predictions = dataset.denormalize_predictions(batch_predictions_np)
 
+            if denormalized_predictions.ndim == 3:
+                denormalized_predictions = denormalized_predictions[:, np.newaxis, :, :]
+
             predictions.append(denormalized_predictions)
 
     return np.concatenate(predictions, axis=0)

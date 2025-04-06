@@ -237,7 +237,8 @@ def inference(args):
 
     test_predictions = predict(model, test_dataset, device)
 
-    create_submission(test_predictions)
+    save_dir = os.path.dirname(args.inference_checkpoint)
+    create_submission(test_predictions, output_file=os.path.join(save_dir, "submission.csv"))
 
 
 if __name__ == "__main__":
