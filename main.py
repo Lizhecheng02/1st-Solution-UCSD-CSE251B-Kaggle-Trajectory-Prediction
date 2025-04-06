@@ -156,7 +156,7 @@ def train(args):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=FACTOR, patience=PATIENCE)
 
     num_epochs = NUM_EPOCHS
-    best_val_loss = float("inf")
+    best_val_real_mse_loss = float("inf")
 
     for epoch in range(num_epochs):
         print(f"Epoch {epoch + 1}/{num_epochs}")
@@ -168,8 +168,8 @@ def train(args):
 
         scheduler.step(val_loss)
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        if val_real_mse < best_val_real_mse_loss:
+            best_val_real_mse_loss = val_real_mse
             torch.save(model.state_dict(), f"{SAVE_DIR}/model-{epoch + 1}.pth")
             torch.save(model.state_dict(), f"{SAVE_DIR}/best-model.pth")
             print(f"The best model saved! - epoch {epoch + 1}")
@@ -177,11 +177,11 @@ def train(args):
             torch.save(model.state_dict(), f"{SAVE_DIR}/model-{epoch + 1}.pth")
             print("Model saved!")
 
-    model.load_state_dict(torch.load("{SAVE_DIR}/best-model.pth"))
+    model.load_state_dict(torch.load(f"{SAVE_DIR}/best-model.pth"))
 
     test_predictions = predict(model, test_dataset, device)
 
-    create_submission(test_predictions)
+    create_submission(test_predictions, output_file=f"{SAVE_DIR}/submission.csv")
 
 
 def inference(args):
