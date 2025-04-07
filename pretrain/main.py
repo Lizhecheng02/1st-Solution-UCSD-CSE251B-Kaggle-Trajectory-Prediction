@@ -1,5 +1,5 @@
 from dataset import TrajectoryDataset
-from utils import load_data, train_epoch, validate, predict, evaluate_real_world_mse, create_submission
+from utils import load_data, train_epoch, validate, evaluate_real_world_mse
 from init import get_device, seed_everything
 from modules import TrajectoryTransformer1, TrajectoryTransformer2, TrajectoryTransformer3, TrajectoryLSTM
 from torch.utils.data import DataLoader
@@ -15,7 +15,7 @@ import numpy as np
 warnings.filterwarnings("ignore")
 
 
-def train(args):
+def pretrain(args):
     print("Training...")
 
     GPU = args.gpu
@@ -49,7 +49,7 @@ def train(args):
     seed_everything(SEED)
     device = get_device()
 
-    train_data, test_data = load_data()
+    train_data, _ = load_data()
 
     kf = KFold(n_splits=5, shuffle=True, random_state=SEED)
     indices = np.arange(len(train_data))
@@ -61,8 +61,6 @@ def train(args):
 
     train_dataset = TrajectoryDataset(train_split, is_train=True)
     val_dataset = TrajectoryDataset(val_split, is_train=True)
-
-    test_dataset = TrajectoryDataset(test_data, is_train=False)
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
@@ -172,74 +170,9 @@ def train(args):
         #     torch.save(model.state_dict(), f"{SAVE_DIR}/model-{epoch + 1}.pth")
         #     print("Model saved!")
 
-    model.load_state_dict(torch.load(f"{SAVE_DIR}/best-model.pth"))
-
-    test_predictions = predict(model, test_dataset, device)
-
-    create_submission(test_predictions, output_file=f"{SAVE_DIR}/submission.csv")
-
-
-def inference(args):
-    print("Inference...")
-
-    SEED = args.seed
-    INPUT_DIM = args.input_dim
-    D_MODEL = args.d_model
-    NHEAD = args.nhead
-    NUM_ENCODER_LAYERS = args.num_encoder_layers
-    NUM_DECODER_LAYERS = args.num_decoder_layers
-    DIM_FEEDFORWARD = args.dim_feedforward
-    DROPOUT = args.dropout
-    MAX_LEN = args.max_len
-    PRED_STEPS = args.pred_steps
-    NUM_AGENT_TYPES = args.num_agent_types
-
-    seed_everything(SEED)
-    device = get_device()
-
-    _, test_data = load_data()
-    test_dataset = TrajectoryDataset(test_data, is_train=False)
-
-    try:
-        config_path = os.path.join(os.path.dirname(args.inference_checkpoint), "model_config.json")
-        with open(config_path, "r") as f:
-            model_config = json.load(f)
-    except:
-        model_config = {
-            "input_dim": INPUT_DIM,
-            "d_model": D_MODEL,
-            "nhead": NHEAD,
-            "num_encoder_layers": NUM_ENCODER_LAYERS,
-            "num_decoder_layers": NUM_DECODER_LAYERS,
-            "dim_feedforward": DIM_FEEDFORWARD,
-            "dropout": DROPOUT,
-            "max_len": MAX_LEN,
-            "pred_steps": PRED_STEPS,
-            "num_agent_types": NUM_AGENT_TYPES
-        }
-
-    if args.model == "TrajectoryLSTM":
-        model = TrajectoryLSTM(**model_config).to(device)
-    elif args.model == "TrajectoryTransformer1":
-        model = TrajectoryTransformer1(**model_config).to(device)
-    elif args.model == "TrajectoryTransformer2":
-        model = TrajectoryTransformer2(**model_config).to(device)
-    elif args.model == "TrajectoryTransformer3":
-        model = TrajectoryTransformer3(**model_config).to(device)
-
-    model.load_state_dict(torch.load(args.inference_checkpoint, map_location=device))
-    model.eval()
-
-    test_predictions = predict(model, test_dataset, device)
-
-    save_dir = os.path.dirname(args.inference_checkpoint)
-    create_submission(test_predictions, output_file=os.path.join(save_dir, "submission.csv"))
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Trajectory Prediction")
-    parser.add_argument("--task", type=str, default="train", help="Task to perform: train or inference")
-    parser.add_argument("--inference_checkpoint", type=str, default=None, help="Checkpoint for inference")
     parser.add_argument("--model", type=str, default="TrajectoryTransformer2", help="Model to use for training")
     parser.add_argument("--gpu", type=str, default="0", help="GPU index to use (e.g., '0')")
     parser.add_argument("--weights_initialization", type=lambda x: x.lower() in ["true", "1", "yes", "y"], default=False, help="Weight initialization method")
@@ -264,7 +197,4 @@ if __name__ == "__main__":
     parser.add_argument("--save_dir", type=str, default="./models", help="Directory to save the model")
     args = parser.parse_args()
     print(args)
-    if args.task == "train":
-        train(args)
-    elif args.task == "inference":
-        inference(args)
+    pretrain(args)
