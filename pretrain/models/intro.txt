@@ -1,1 +1,0 @@
-The directory for saving pre-trained model checkpoints.
