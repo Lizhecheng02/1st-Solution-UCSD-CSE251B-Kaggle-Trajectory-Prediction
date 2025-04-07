@@ -256,7 +256,6 @@ class TrajectoryTransformer1(nn.Module):
             dropout=dropout
         )
 
-        # Initial decoder input
         self.decoder_input_embedding = nn.Linear(2, d_model)
 
         self.refinement_layer = nn.Sequential(
@@ -272,7 +271,6 @@ class TrajectoryTransformer1(nn.Module):
 
     def forward(self, ego_input, all_agents_input, valid_agents_mask=None):
         batch_size = ego_input.shape[0]
-
         num_agents = all_agents_input.shape[1]
         seq_len = all_agents_input.shape[2]
 

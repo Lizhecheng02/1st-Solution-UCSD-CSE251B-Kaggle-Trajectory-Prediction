@@ -6,7 +6,7 @@
 
 #### 1. Install Packages
 
-```b
+```bash
 pip install -r requirements.txt
 ```
 
