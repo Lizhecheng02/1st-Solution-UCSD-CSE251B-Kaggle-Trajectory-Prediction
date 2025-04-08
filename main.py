@@ -1,7 +1,7 @@
 from dataset import TrajectoryDataset
 from utils import load_data, train_epoch, validate, predict, evaluate_real_world_mse, create_submission
 from init import get_device, seed_everything
-from modules import TrajectoryTransformer1, TrajectoryTransformer2, TrajectoryTransformer3, TrajectoryLSTM
+from modules import TrajectoryTransformer1, TrajectoryTransformer2, TrajectoryTransformer3, TrajectoryLSTM, TrajectoryLSTMAttention, TrajectoryAttentionLSTM
 from torch.utils.data import DataLoader
 from sklearn.model_selection import KFold
 import torch
@@ -67,63 +67,6 @@ def train(args):
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
 
-    if MODEL == "TrajectoryLSTM":
-        model = TrajectoryLSTM(
-            input_dim=INPUT_DIM,
-            d_model=D_MODEL,
-            nhead=NHEAD,
-            num_encoder_layers=NUM_ENCODER_LAYERS,
-            num_decoder_layers=NUM_DECODER_LAYERS,
-            dim_feedforward=DIM_FEEDFORWARD,
-            dropout=DROPOUT,
-            max_len=MAX_LEN,
-            pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES,
-            weights_initialization=WEIGHTS_INITIALIZATION
-        ).to(device)
-    elif MODEL == "TrajectoryTransformer1":
-        model = TrajectoryTransformer1(
-            input_dim=INPUT_DIM,
-            d_model=D_MODEL,
-            nhead=NHEAD,
-            num_encoder_layers=NUM_ENCODER_LAYERS,
-            num_decoder_layers=NUM_DECODER_LAYERS,
-            dim_feedforward=DIM_FEEDFORWARD,
-            dropout=DROPOUT,
-            max_len=MAX_LEN,
-            pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES,
-            weights_initialization=WEIGHTS_INITIALIZATION
-        ).to(device)
-    elif MODEL == "TrajectoryTransformer2":
-        model = TrajectoryTransformer2(
-            input_dim=INPUT_DIM,
-            d_model=D_MODEL,
-            nhead=NHEAD,
-            num_encoder_layers=NUM_ENCODER_LAYERS,
-            num_decoder_layers=NUM_DECODER_LAYERS,
-            dim_feedforward=DIM_FEEDFORWARD,
-            dropout=DROPOUT,
-            max_len=MAX_LEN,
-            pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES,
-            weights_initialization=WEIGHTS_INITIALIZATION
-        ).to(device)
-    elif MODEL == "TrajectoryTransformer3":
-        model = TrajectoryTransformer3(
-            input_dim=INPUT_DIM,
-            d_model=D_MODEL,
-            nhead=NHEAD,
-            num_encoder_layers=NUM_ENCODER_LAYERS,
-            num_decoder_layers=NUM_DECODER_LAYERS,
-            dim_feedforward=DIM_FEEDFORWARD,
-            dropout=DROPOUT,
-            max_len=MAX_LEN,
-            pred_steps=PRED_STEPS,
-            num_agent_types=NUM_AGENT_TYPES,
-            weights_initialization=WEIGHTS_INITIALIZATION
-        ).to(device)
-
     model_config = {
         "input_dim": INPUT_DIM,
         "d_model": D_MODEL,
@@ -136,6 +79,19 @@ def train(args):
         "pred_steps": PRED_STEPS,
         "num_agent_types": NUM_AGENT_TYPES
     }
+
+    if args.model == "TrajectoryLSTM":
+        model = TrajectoryLSTM(**model_config).to(device)
+    elif args.model == "TrajectoryLSTMAttention":
+        model = TrajectoryLSTMAttention(**model_config).to(device)
+    elif args.model == "TrajectoryAttentionLSTM":
+        model = TrajectoryAttentionLSTM(**model_config).to(device)
+    elif args.model == "TrajectoryTransformer1":
+        model = TrajectoryTransformer1(**model_config).to(device)
+    elif args.model == "TrajectoryTransformer2":
+        model = TrajectoryTransformer2(**model_config).to(device)
+    elif args.model == "TrajectoryTransformer3":
+        model = TrajectoryTransformer3(**model_config).to(device)
 
     with open(f"{SAVE_DIR}/model_config.json", "w") as f:
         json.dump(model_config, f, indent=4)
@@ -220,6 +176,10 @@ def inference(args):
 
     if args.model == "TrajectoryLSTM":
         model = TrajectoryLSTM(**model_config).to(device)
+    elif args.model == "TrajectoryLSTMAttention":
+        model = TrajectoryLSTMAttention(**model_config).to(device)
+    elif args.model == "TrajectoryAttentionLSTM":
+        model = TrajectoryAttentionLSTM(**model_config).to(device)
     elif args.model == "TrajectoryTransformer1":
         model = TrajectoryTransformer1(**model_config).to(device)
     elif args.model == "TrajectoryTransformer2":
