@@ -1,7 +1,12 @@
 from dataset import TrajectoryDataset
 from utils import load_data, train_epoch, validate, predict, evaluate_real_world_mse, create_submission
 from init import get_device, seed_everything
-from modules import TrajectoryTransformer1, TrajectoryTransformer2, TrajectoryTransformer3, TrajectoryLSTM, TrajectoryLSTMAttention, TrajectoryAttentionLSTM
+from TrajectoryLSTM import TrajectoryLSTM
+from TrajectoryLSTMAttention import TrajectoryLSTMAttention
+from TrajectoryAttentionLSTM import TrajectoryAttentionLSTM
+from TrajectoryTransformer1 import TrajectoryTransformer1
+from TrajectoryTransformer2 import TrajectoryTransformer2
+from TrajectoryTransformer3 import TrajectoryTransformer3
 from torch.utils.data import DataLoader
 from sklearn.model_selection import KFold
 import torch
@@ -77,7 +82,8 @@ def train(args):
         "dropout": DROPOUT,
         "max_len": MAX_LEN,
         "pred_steps": PRED_STEPS,
-        "num_agent_types": NUM_AGENT_TYPES
+        "num_agent_types": NUM_AGENT_TYPES,
+        "weights_initialization": WEIGHTS_INITIALIZATION
     }
 
     if args.model == "TrajectoryLSTM":

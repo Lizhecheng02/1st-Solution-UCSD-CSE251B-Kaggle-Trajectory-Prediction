@@ -1,12 +1,12 @@
 python main.py \
     --task train \
     --inference_checkpoint "" \
-    --model TrajectoryTransformer1 \
+    --model TrajectoryLSTM \
     --weights_initialization 'false' \
     --gpu '0' \
     --fold 0 \
     --batch_size 32 \
-    --num_epochs 250 \
+    --num_epochs 500 \
     --lr 5e-4 \
     --max_norm 1.0 \
     --seed 42 \
@@ -16,11 +16,11 @@ python main.py \
     --num_encoder_layers 4 \
     --num_decoder_layers 4 \
     --dim_feedforward 512 \
-    --dropout 0.2 \
+    --dropout 0.25 \
     --max_len 50 \
     --pred_steps 60 \
     --num_agent_types 10 \
-    --factor 0.5 \
-    --patience 50 \
+    --factor 0.4 \
+    --patience 100 \
     --save_dir ./models
 
