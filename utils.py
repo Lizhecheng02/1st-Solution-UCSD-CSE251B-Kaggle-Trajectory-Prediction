@@ -81,10 +81,7 @@ def validate(model, dataloader, criterion, device, model_type=None):
             valid_agents_mask = batch["valid_agents_mask"].to(device)
             ego_future = batch["ego_future"].to(device)
 
-            if model_type == "TrajectoryTransformer3":
-                predictions = model(ego_input, all_agents_input, valid_agents_mask, ego_future=None)
-            else:
-                predictions = model(ego_input, all_agents_input, valid_agents_mask)
+            predictions = model(ego_input, all_agents_input, valid_agents_mask)
             loss = criterion(predictions, ego_future)
 
             total_loss += loss.item()
@@ -103,14 +100,13 @@ def predict(model, dataset, device):
             ego_input = batch["ego_input"].to(device)
             all_agents_input = batch["all_agents_input"].to(device)
             valid_agents_mask = batch["valid_agents_mask"].to(device)
+            ego_start_pos = batch["ego_start_pos"].cpu().numpy()
 
             batch_predictions = model(ego_input, all_agents_input, valid_agents_mask)
-
             batch_predictions_np = batch_predictions.cpu().numpy()
-            denormalized_predictions = dataset.denormalize_predictions(batch_predictions_np)
 
-            if denormalized_predictions.ndim == 3:
-                denormalized_predictions = denormalized_predictions[:, np.newaxis, :, :]
+            denormalized_predictions = batch_predictions_np + ego_start_pos[:, np.newaxis, :]
+            denormalized_predictions = denormalized_predictions[:, np.newaxis, :, :]
 
             predictions.append(denormalized_predictions)
 

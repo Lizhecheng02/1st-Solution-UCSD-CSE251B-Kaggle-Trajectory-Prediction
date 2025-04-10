@@ -121,7 +121,7 @@ def train(args):
         train_loss = train_epoch(model, train_loader, optimizer, criterion, device, max_norm=MAX_NORM, model_type=MODEL)
         val_loss = validate(model, val_loader, criterion, device, model_type=MODEL)
         val_real_mse = evaluate_real_world_mse(model, val_loader, val_dataset, device)
-        print(f"Train Loss (norm): {train_loss: .6f}, Val Loss (norm): {val_loss: .6f}, Val MSE (real): {val_real_mse: .2f} m^2")
+        print(f"Train Loss: {train_loss: .6f}, Val Loss: {val_loss: .6f}, Val MSE (real): {val_real_mse: .2f} m^2")
 
         scheduler.step(val_loss)
 
