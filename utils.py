@@ -70,7 +70,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device, max_norm=1.0, m
     return total_loss / len(dataloader)
 
 
-def validate(model, dataloader, criterion, device, model_type=None):
+def validate(model, dataloader, criterion, device):
     model.eval()
     total_loss = 0
 

@@ -119,7 +119,7 @@ def train(args):
         print(f"Epoch {epoch + 1}/{num_epochs}")
 
         train_loss = train_epoch(model, train_loader, optimizer, criterion, device, max_norm=MAX_NORM, model_type=MODEL)
-        val_loss = validate(model, val_loader, criterion, device, model_type=MODEL)
+        val_loss = validate(model, val_loader, criterion, device)
         val_real_mse = evaluate_real_world_mse(model, val_loader, val_dataset, device)
         print(f"Train Loss: {train_loss: .6f}, Val Loss: {val_loss: .6f}, Val MSE (real): {val_real_mse: .2f} m^2")
 
