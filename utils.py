@@ -87,7 +87,10 @@ def train_epoch(model, dataloader, optimizer, criterion, device, max_norm=1.0, m
         else:
             predictions = model(ego_input, all_agents_input, valid_agents_mask)
 
+        # loss = compute_weighted_loss(predictions, ego_future, mode="linear")
+        # loss = compute_ade_fde(predictions, ego_future, alpha=2.0)
         loss = criterion(predictions, ego_future)
+
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=max_norm)
         optimizer.step()
@@ -109,6 +112,9 @@ def validate(model, dataloader, criterion, device):
             ego_future = batch["ego_future"].to(device)
 
             predictions = model(ego_input, all_agents_input, valid_agents_mask)
+
+            # loss = compute_weighted_loss(predictions, ego_future, mode="linear")
+            # loss = compute_ade_fde(predictions, ego_future, alpha=2.0)
             loss = criterion(predictions, ego_future)
 
             total_loss += loss.item()
