@@ -2,6 +2,7 @@ from dataset import TrajectoryDataset
 from utils import load_data, train_epoch, validate, predict, evaluate_real_world_mse, create_submission
 from init import get_device, seed_everything
 from TrajectoryLSTM import TrajectoryLSTM
+from TrajectoryLSTM2 import TrajectoryLSTM2
 from TrajectoryLSTMAttention import TrajectoryLSTMAttention
 from TrajectoryAttentionLSTM import TrajectoryAttentionLSTM
 from TrajectoryTransformer1 import TrajectoryTransformer1
@@ -88,6 +89,8 @@ def train(args):
 
     if args.model == "TrajectoryLSTM":
         model = TrajectoryLSTM(**model_config).to(device)
+    elif args.model == "TrajectoryLSTM2":
+        model = TrajectoryLSTM2(**model_config).to(device)
     elif args.model == "TrajectoryLSTMAttention":
         model = TrajectoryLSTMAttention(**model_config).to(device)
     elif args.model == "TrajectoryAttentionLSTM":
@@ -182,6 +185,8 @@ def inference(args):
 
     if args.model == "TrajectoryLSTM":
         model = TrajectoryLSTM(**model_config).to(device)
+    elif args.model == "TrajectoryLSTM2":
+        model = TrajectoryLSTM2(**model_config).to(device)
     elif args.model == "TrajectoryLSTMAttention":
         model = TrajectoryLSTMAttention(**model_config).to(device)
     elif args.model == "TrajectoryAttentionLSTM":

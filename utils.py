@@ -19,6 +19,33 @@ def load_data():
     return train_data, test_data
 
 
+def compute_ade_fde(pred, gt, alpha=2.0):
+    displacement = torch.norm(pred - gt, dim=-1)
+    ade = displacement.mean()
+    fde = displacement[:, -1].mean()
+    loss = ade + alpha * fde
+    return loss
+
+
+def compute_weighted_loss(pred, gt, mode="linear"):
+    _, T, _ = pred.shape
+    displacement = torch.norm(pred - gt, dim=-1)
+
+    if mode == "linear":
+        weights = torch.linspace(1.0, 2.0, T, device=pred.device)
+    elif mode == "sqrt":
+        weights = torch.sqrt(torch.linspace(1.0, T, T, device=pred.device))
+    elif mode == "exp":
+        weights = torch.exp(torch.linspace(0.0, 1.0, T, device=pred.device))
+    else:
+        weights = torch.ones(T, device=pred.device)
+
+    weights = weights / weights.sum() * T
+
+    weighted_loss = (displacement * weights).mean()
+    return weighted_loss
+
+
 def evaluate_real_world_mse(model, dataloader, dataset, device):
     model.eval()
     total_loss = 0

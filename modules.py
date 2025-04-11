@@ -25,6 +25,7 @@ class PositionalEncoding(nn.Module):
 class AgentTypeEmbedding(nn.Module):
     def __init__(self, num_types, d_model):
         super(AgentTypeEmbedding, self).__init__()
+
         self.embedding = nn.Embedding(num_types, d_model)
 
     def forward(self, agent_types):
@@ -45,6 +46,7 @@ class SocialTransformerEncoderLayer(nn.TransformerEncoderLayer):
 class SocialLSTMEncoder(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers=4, dropout=0.1):
         super(SocialLSTMEncoder, self).__init__()
+
         self.lstm = nn.LSTM(
             input_size=input_dim,
             hidden_size=hidden_dim,
@@ -81,7 +83,8 @@ class LSTMTrajectoryDecoder(nn.Module):
 
 class TransformerTrajectoryDecoder(nn.Module):
     def __init__(self, d_model, nhead, num_layers, dim_feedforward, dropout, max_len):
-        super().__init__()
+        super(TransformerTrajectoryDecoder).__init__()
+
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
             nhead=nhead,
@@ -97,3 +100,45 @@ class TransformerTrajectoryDecoder(nn.Module):
         tgt = self.positional_encoding(tgt)
         output = self.decoder(tgt, memory, tgt_mask=tgt_mask)
         return self.output_fc(output)
+
+
+class AttentionDecoderWithMaskAndGating(nn.Module):
+    def __init__(self, d_model, nhead, gating=True, distance_threshold=10.0):
+        super(AttentionDecoderWithMaskAndGating).__init__()
+
+        self.attention = nn.MultiheadAttention(d_model, nhead, batch_first=True)
+        self.gating = gating
+        self.distance_threshold = distance_threshold
+
+        if gating:
+            self.gate_fc = nn.Sequential(
+                nn.Linear(d_model * 2, d_model),
+                nn.Sigmoid()
+            )
+
+    def forward(self, query, agent_contexts, ego_positions, agent_positions):
+        dist = torch.norm(agent_positions - ego_positions[:, None, :], dim=-1)
+
+        attn_mask = torch.where(
+            dist > self.distance_threshold,
+            torch.ones_like(dist, dtype=torch.bool),
+            torch.zeros_like(dist, dtype=torch.bool)
+        )
+        attn_mask[attn_mask.all(dim=1)] = False
+
+        context, _ = self.attention(
+            query=query,
+            key=agent_contexts,
+            value=agent_contexts,
+            key_padding_mask=attn_mask
+        )
+
+        if self.gating:
+            gate_input = torch.cat([query, context], dim=-1)
+            gate_input = torch.clamp(gate_input, -10, 10)
+            gate = self.gate_fc(gate_input)
+            output = query + gate * context
+        else:
+            output = torch.cat([query, context], dim=-1)
+
+        return output

@@ -1,3 +1,4 @@
 *.npz
 *.pth
 *.csv
+__pycache__/
