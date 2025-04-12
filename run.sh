@@ -6,7 +6,7 @@ python main.py \
     --gpu '0' \
     --fold 0 \
     --batch_size 32 \
-    --num_epochs 500 \
+    --num_epochs 400 \
     --lr 5e-4 \
     --max_norm 1.0 \
     --seed 42 \
@@ -21,6 +21,6 @@ python main.py \
     --pred_steps 60 \
     --num_agent_types 10 \
     --factor 0.4 \
-    --patience 100 \
+    --patience 80 \
     --save_dir ./models
 

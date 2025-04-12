@@ -83,7 +83,7 @@ class LSTMTrajectoryDecoder(nn.Module):
 
 class TransformerTrajectoryDecoder(nn.Module):
     def __init__(self, d_model, nhead, num_layers, dim_feedforward, dropout, max_len):
-        super(TransformerTrajectoryDecoder).__init__()
+        super(TransformerTrajectoryDecoder, self).__init__()
 
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
@@ -104,7 +104,7 @@ class TransformerTrajectoryDecoder(nn.Module):
 
 class AttentionDecoderWithMaskAndGating(nn.Module):
     def __init__(self, d_model, nhead, gating=True, distance_threshold=10.0):
-        super(AttentionDecoderWithMaskAndGating).__init__()
+        super(AttentionDecoderWithMaskAndGating, self).__init__()
 
         self.attention = nn.MultiheadAttention(d_model, nhead, batch_first=True)
         self.gating = gating
