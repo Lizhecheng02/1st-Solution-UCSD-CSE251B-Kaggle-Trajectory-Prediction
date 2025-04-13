@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import pandas as pd
 import glob
+import os
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
@@ -166,7 +167,7 @@ def create_submission(predictions, output_file="submission.csv"):
 
 
 def ensemble_submissions(submission_dir, output_path):
-    csv_files = glob.glob(f"{submission_dir}/*.csv")
+    csv_files = glob.glob(os.path.join(submission_dir, "**", "*.csv"), recursive=True)
 
     merged_df = None
 
