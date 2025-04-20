@@ -1,3 +1,14 @@
+# ================================================
+# Created on Sat Apr 19 2025 8:00:12 PM
+#
+# The MIT License (MIT)
+# Copyright (c) 2025
+#
+# Author: Zhecheng Li
+# Institution: University of California, San Diego
+# ================================================
+
+
 import csv
 import numpy as np
 import torch
@@ -167,7 +178,16 @@ def create_submission(predictions, output_file="submission.csv"):
 
 
 def ensemble_submissions(submission_dir, output_path):
-    csv_files = glob.glob(os.path.join(submission_dir, "**", "*.csv"), recursive=True)
+    if isinstance(submission_dir, str):
+        submission_dir = [submission_dir]
+
+    csv_files = []
+    for dir in submission_dir:
+        csv_files = glob.glob(os.path.join(dir, "**", "*.csv"), recursive=True)
+
+    if not csv_files:
+        print("No CSV files found in the provided directory/directories.")
+        return
 
     merged_df = None
 

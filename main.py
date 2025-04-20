@@ -1,3 +1,14 @@
+# ================================================
+# Created on Sat Apr 19 2025 7:59:47 PM
+#
+# The MIT License (MIT)
+# Copyright (c) 2025
+#
+# Author: Zhecheng Li
+# Institution: University of California, San Diego
+# ================================================
+
+
 from dataset import TrajectoryDataset
 from utils import load_data, train_epoch, validate, predict, evaluate_real_world_mse, create_submission
 from init import get_device, seed_everything

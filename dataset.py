@@ -1,3 +1,14 @@
+# ================================================
+# Created on Sat Apr 19 2025 7:59:22 PM
+#
+# The MIT License (MIT)
+# Copyright (c) 2025
+#
+# Author: Zhecheng Li
+# Institution: University of California, San Diego
+# ================================================
+
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset

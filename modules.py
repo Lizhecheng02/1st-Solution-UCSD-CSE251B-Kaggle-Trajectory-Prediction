@@ -1,3 +1,14 @@
+# ================================================
+# Created on Sat Apr 19 2025 7:59:56 PM
+#
+# The MIT License (MIT)
+# Copyright (c) 2025
+#
+# Author: Zhecheng Li
+# Institution: University of California, San Diego
+# ================================================
+
+
 import torch
 import torch.nn as nn
 import math

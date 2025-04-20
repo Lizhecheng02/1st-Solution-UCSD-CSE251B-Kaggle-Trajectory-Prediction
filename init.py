@@ -1,3 +1,14 @@
+# ================================================
+# Created on Sat Apr 19 2025 7:59:34 PM
+#
+# The MIT License (MIT)
+# Copyright (c) 2025
+#
+# Author: Zhecheng Li
+# Institution: University of California, San Diego
+# ================================================
+
+
 import torch
 import numpy as np
 import random

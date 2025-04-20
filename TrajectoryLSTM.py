@@ -1,3 +1,14 @@
+# ================================================
+# Created on Sat Apr 19 2025 5:15:53 PM
+#
+# The MIT License (MIT)
+# Copyright (c) 2025
+#
+# Author: Zhecheng Li
+# Institution: University of California, San Diego
+# ================================================
+
+
 from modules import PositionalEncoding, AgentTypeEmbedding, SocialLSTMEncoder, LSTMTrajectoryDecoder
 import torch
 import torch.nn as nn
