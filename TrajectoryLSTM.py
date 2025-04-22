@@ -62,6 +62,34 @@ class TrajectoryLSTM(nn.Module):
             nn.Linear(512, 2 * pred_steps)
         )
 
+        self.refinement_layer2 = nn.Sequential(
+            nn.Linear(2 * pred_steps, 512),
+            nn.LayerNorm(512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, 512),
+            nn.LayerNorm(512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, 2 * pred_steps)
+        )
+
+        self.refinement_layer3 = nn.Sequential(
+            nn.Linear(2 * pred_steps, 256),
+            nn.LayerNorm(256),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(256, 512),
+            nn.LayerNorm(512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, 256),
+            nn.LayerNorm(256),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, 2 * pred_steps)
+        )
+
         if weights_initialization:
             self.apply(self._init_weights)
             print("Weights initialized")
