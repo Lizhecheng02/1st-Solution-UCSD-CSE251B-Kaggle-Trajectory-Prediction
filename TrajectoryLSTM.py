@@ -87,7 +87,7 @@ class TrajectoryLSTM(nn.Module):
             nn.LayerNorm(256),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(512, 2 * pred_steps)
+            nn.Linear(256, 2 * pred_steps)
         )
 
         if weights_initialization:

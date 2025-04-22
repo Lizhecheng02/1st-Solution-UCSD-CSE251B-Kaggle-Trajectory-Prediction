@@ -1,3 +1,14 @@
+# ================================================
+# Created on Tue Apr 22 2025 12:25:59 PM
+#
+# The MIT License (MIT)
+# Copyright (c) 2025
+#
+# Author: Zhecheng Li
+# Institution: University of California, San Diego
+# ================================================
+
+
 from modules import PositionalEncoding, AgentTypeEmbedding, SocialLSTMEncoder, LSTMTrajectoryDecoder, AttentionDecoderWithMaskAndGating
 import torch
 import torch.nn as nn
@@ -50,6 +61,34 @@ class TrajectoryLSTM2(nn.Module):
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(512, 2 * pred_steps)
+        )
+
+        self.refinement_layer2 = nn.Sequential(
+            nn.Linear(2 * pred_steps, 512),
+            nn.LayerNorm(512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, 512),
+            nn.LayerNorm(512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, 2 * pred_steps)
+        )
+
+        self.refinement_layer3 = nn.Sequential(
+            nn.Linear(2 * pred_steps, 256),
+            nn.LayerNorm(256),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(256, 512),
+            nn.LayerNorm(512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(512, 256),
+            nn.LayerNorm(256),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(256, 2 * pred_steps)
         )
 
         if weights_initialization:
