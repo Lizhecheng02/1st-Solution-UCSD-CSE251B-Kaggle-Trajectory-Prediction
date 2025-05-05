@@ -153,3 +153,59 @@ class AttentionDecoderWithMaskAndGating(nn.Module):
             output = torch.cat([query, context], dim=-1)
 
         return output
+
+
+class InteractionEncoder(nn.Module):
+    def __init__(self, d_model, nhead, gating=True, distance_threshold=30.0, min_agents=5, debug=True):
+        super(InteractionEncoder, self).__init__()
+
+        self.attention = nn.MultiheadAttention(d_model, nhead, batch_first=True)
+        self.gating = gating
+        self.distance_threshold = distance_threshold
+        self.min_agents = min_agents
+        self.debug = debug
+
+        if gating:
+            self.gate_fc = nn.Sequential(
+                nn.LayerNorm(d_model * 2),
+                nn.Linear(d_model * 2, d_model),
+                nn.Sigmoid()
+            )
+
+    def forward(self, query, agent_contexts, ego_positions, agent_positions, valid_agents_mask=None):
+        B, N, _ = agent_positions.shape
+
+        dist = torch.norm(agent_positions - ego_positions[:, None, :], dim=-1)
+
+        if valid_agents_mask is not None:
+            attn_mask = (dist > self.distance_threshold) | (~valid_agents_mask)
+        else:
+            attn_mask = (dist > self.distance_threshold)
+
+        for b in range(B):
+            if attn_mask[b].all():
+                topk = torch.topk(dist[b], self.min_agents, largest=False).indices
+                attn_mask[b, topk] = False
+
+        key_padding_mask = attn_mask
+
+        context, _ = self.attention(
+            query=query,
+            key=agent_contexts,
+            value=agent_contexts,
+            key_padding_mask=key_padding_mask
+        )
+
+        if self.gating:
+            gate_input = torch.cat([query, context], dim=-1)
+            gate_input = torch.clamp(gate_input, -10, 10)
+            gate = self.gate_fc(gate_input)
+
+            output = query + gate * context + (1 - gate) * query
+
+            if self.debug:
+                print("Gating stats - mean:", gate.mean().item(), "std:", gate.std().item())
+        else:
+            output = context
+
+        return output

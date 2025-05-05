@@ -9,7 +9,7 @@
 # ================================================
 
 
-from modules import PositionalEncoding, AgentTypeEmbedding, SocialLSTMEncoder, LSTMTrajectoryDecoder, AttentionDecoderWithMaskAndGating
+from modules import PositionalEncoding, AgentTypeEmbedding, SocialLSTMEncoder, LSTMTrajectoryDecoder, AttentionDecoderWithMaskAndGating, InteractionEncoder
 import torch
 import torch.nn as nn
 
@@ -54,7 +54,8 @@ class TrajectoryLSTM2(nn.Module):
         )
 
         self.decoder_input_embedding = nn.Linear(2, d_model)
-        self.attn_decoder = AttentionDecoderWithMaskAndGating(d_model, nhead, gating=True, distance_threshold=20.0)
+        # self.attn_decoder = AttentionDecoderWithMaskAndGating(d_model, nhead, gating=True, distance_threshold=20.0)
+        self.interaction_encoder = InteractionEncoder(d_model, nhead, gating=True, distance_threshold=30.0, min_agents=5, debug=True)
 
         self.refinement_layer = nn.Sequential(
             nn.Linear(2 * pred_steps, 512),
@@ -95,64 +96,106 @@ class TrajectoryLSTM2(nn.Module):
             self.apply(self._init_weights)
             print("Weights initialized")
 
+    # def forward(self, ego_input, all_agents_input, valid_agents_mask=None):
+    #     batch_size = ego_input.shape[0]
+    #     num_agents = all_agents_input.shape[1]
+    #     seq_len = all_agents_input.shape[2]
+
+    #     all_agents_flat = all_agents_input.view(batch_size * num_agents, seq_len, -1)
+    #     agent_types = all_agents_flat[:, 0, 5].long()
+    #     agent_features = all_agents_flat[:, :, :5]
+
+    #     agent_embeddings = self.input_embedding(agent_features)
+    #     type_embeddings = self.agent_type_embedding(agent_types).unsqueeze(1).expand(-1, seq_len, -1)
+    #     agent_embeddings = agent_embeddings + type_embeddings
+
+    #     agent_embeddings = self.positional_encoding(agent_embeddings)
+    #     agent_embeddings = agent_embeddings.view(batch_size, num_agents, seq_len, -1)
+
+    #     if valid_agents_mask is not None:
+    #         mask = (~valid_agents_mask).unsqueeze(-1).unsqueeze(-1)
+    #         agent_embeddings = agent_embeddings.masked_fill(mask, 0.0)
+
+    #     agent_embeddings = agent_embeddings.view(batch_size * num_agents, seq_len, -1)
+    #     encoded_features, _ = self.lstm_encoder(agent_embeddings)
+    #     encoded_features = encoded_features[:, -1, :].view(batch_size, num_agents, -1)
+
+    #     agent_positions = all_agents_input[:, :, -1, :2]
+    #     last_pos = ego_input[:, -1, :2]
+    #     decoder_input = self.decoder_input_embedding(last_pos).unsqueeze(1)
+
+    #     predictions = []
+    #     h_t = None
+    #     c_t = None
+
+    #     for _ in range(self.pred_steps):
+    #         decoder_input = torch.clamp(decoder_input, -10, 10)
+
+    #         context_input = self.attn_decoder(
+    #             query=decoder_input,
+    #             agent_contexts=encoded_features,
+    #             ego_positions=last_pos,
+    #             agent_positions=agent_positions
+    #         )
+
+    #         if h_t is None or c_t is None:
+    #             output, (h_t, c_t) = self.trajectory_decoder(context_input)
+    #         else:
+    #             output, (h_t, c_t) = self.trajectory_decoder(context_input, (h_t, c_t))
+
+    #         pred_pos = output[:, -1, :]
+    #         predictions.append(pred_pos)
+    #         decoder_input = self.decoder_input_embedding(pred_pos).unsqueeze(1)
+    #         last_pos = pred_pos
+
+    #     trajectory = torch.stack(predictions, dim=1)
+    #     trajectory_flat = trajectory.reshape(batch_size, -1)
+    #     refined_trajectory_flat = self.refinement_layer(trajectory_flat)
+    #     refined_trajectory = refined_trajectory_flat.reshape(batch_size, self.pred_steps, 2)
+
+    #     return refined_trajectory
+
     def forward(self, ego_input, all_agents_input, valid_agents_mask=None):
-        batch_size = ego_input.shape[0]
-        num_agents = all_agents_input.shape[1]
-        seq_len = all_agents_input.shape[2]
+        B, N, T, _ = all_agents_input.shape
 
-        all_agents_flat = all_agents_input.view(batch_size * num_agents, seq_len, -1)
-        agent_types = all_agents_flat[:, 0, 5].long()
-        agent_features = all_agents_flat[:, :, :5]
+        agent_types = all_agents_input[:, :, 0, 5].long()
+        agent_feats = all_agents_input[:, :, :, :5]
 
-        agent_embeddings = self.input_embedding(agent_features)
-        type_embeddings = self.agent_type_embedding(agent_types).unsqueeze(1).expand(-1, seq_len, -1)
-        agent_embeddings = agent_embeddings + type_embeddings
+        x = self.input_embedding(agent_feats) + self.agent_type_embedding(agent_types).unsqueeze(2)
+        x = self.positional_encoding(x.view(B * N, T, -1)).view(B, N, T, -1)
 
-        agent_embeddings = self.positional_encoding(agent_embeddings)
-        agent_embeddings = agent_embeddings.view(batch_size, num_agents, seq_len, -1)
+        enc_input = x.view(B * N, T, -1)
+        enc_out, _ = self.lstm_encoder(enc_input)
+        enc_feat = enc_out[:, -1, :].view(B, N, -1)
 
-        if valid_agents_mask is not None:
-            mask = (~valid_agents_mask).unsqueeze(-1).unsqueeze(-1)
-            agent_embeddings = agent_embeddings.masked_fill(mask, 0.0)
+        ego_query = enc_feat[:, 0, :].unsqueeze(1)
+        agent_positions = all_agents_input[:, :, -1, 0:2]
+        ego_pos = ego_input[:, -1, 0:2]
 
-        agent_embeddings = agent_embeddings.view(batch_size * num_agents, seq_len, -1)
-        encoded_features, _ = self.lstm_encoder(agent_embeddings)
-        encoded_features = encoded_features[:, -1, :].view(batch_size, num_agents, -1)
+        context_fused = self.interaction_decoder(
+            query=ego_query,
+            agent_contexts=enc_feat,
+            ego_positions=ego_pos,
+            agent_positions=agent_positions,
+            valid_agents_mask=valid_agents_mask
+        )
 
-        agent_positions = all_agents_input[:, :, -1, :2]
-        last_pos = ego_input[:, -1, :2]
-        decoder_input = self.decoder_input_embedding(last_pos).unsqueeze(1)
+        decoder_input = self.decoder_input_embedding(ego_pos).unsqueeze(1)
+        hidden = (context_fused.permute(1, 0, 2).contiguous(), torch.zeros_like(context_fused.permute(1, 0, 2)))
 
         predictions = []
-        h_t = None
-        c_t = None
-
         for _ in range(self.pred_steps):
-            decoder_input = torch.clamp(decoder_input, -10, 10)
-
-            context_input = self.attn_decoder(
-                query=decoder_input,
-                agent_contexts=encoded_features,
-                ego_positions=last_pos,
-                agent_positions=agent_positions
-            )
-
-            if h_t is None or c_t is None:
-                output, (h_t, c_t) = self.trajectory_decoder(context_input)
-            else:
-                output, (h_t, c_t) = self.trajectory_decoder(context_input, (h_t, c_t))
-
+            output, hidden = self.trajectory_decoder(decoder_input, hidden)
             pred_pos = output[:, -1, :]
             predictions.append(pred_pos)
             decoder_input = self.decoder_input_embedding(pred_pos).unsqueeze(1)
-            last_pos = pred_pos
 
         trajectory = torch.stack(predictions, dim=1)
-        trajectory_flat = trajectory.reshape(batch_size, -1)
-        refined_trajectory_flat = self.refinement_layer(trajectory_flat)
-        refined_trajectory = refined_trajectory_flat.reshape(batch_size, self.pred_steps, 2)
 
-        return refined_trajectory
+        trajectory_flat = trajectory.reshape(B, -1)
+        refined = self.refinement_layer(trajectory_flat).reshape(B, self.pred_steps, 2)
+
+        return refined
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
