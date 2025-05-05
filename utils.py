@@ -15,6 +15,7 @@ import torch
 import pandas as pd
 import glob
 import os
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
@@ -204,3 +205,19 @@ def ensemble_submissions(submission_dir, output_path):
 
     ensembled_df.to_csv(output_path, index=False)
     print(f"Ensembled submission saved to {output_path}")
+
+
+def plot_loss_curve(train_losses, val_losses, fold, total_folds, model_type):
+    os.makedirs("figures", exist_ok=True)
+    mark_interval = max(1, len(train_losses) // 10)
+    plt.figure(figsize=(8, 5))
+    plt.plot(train_losses, marker="^", markevery=mark_interval, color="tab:blue", label="Train Loss")
+    plt.plot(val_losses, marker="s", markevery=mark_interval, color="tab:orange", label="Validation Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title(f"{model_type} Training and Validation Loss (Fold {fold}/{total_folds})")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(f"figures/{model_type}-Fold-{fold}-Loss.pdf", format="pdf", dpi=300, bbox_inches="tight", pad_inches=0.05)
+    plt.close()

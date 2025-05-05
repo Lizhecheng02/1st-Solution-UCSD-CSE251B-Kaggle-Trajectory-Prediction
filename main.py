@@ -10,7 +10,7 @@
 
 
 from dataset import TrajectoryDataset
-from utils import load_data, train_epoch, validate, predict, evaluate_real_world_mse, create_submission
+from utils import load_data, train_epoch, validate, predict, evaluate_real_world_mse, create_submission, plot_loss_curve
 from init import get_device, seed_everything
 from TrajectoryLSTM import TrajectoryLSTM
 from TrajectoryLSTM2 import TrajectoryLSTM2
@@ -129,6 +129,9 @@ def train(args):
     num_epochs = NUM_EPOCHS
     best_val_real_mse_loss = float("inf")
 
+    train_losses = []
+    val_losses = []
+
     for epoch in range(num_epochs):
         print(f"Epoch {epoch + 1}/{num_epochs}")
 
@@ -136,6 +139,9 @@ def train(args):
         val_loss = validate(model, val_loader, criterion, device)
         val_real_mse = evaluate_real_world_mse(model, val_loader, val_dataset, device)
         print(f"Train Loss: {train_loss: .6f}, Val Loss: {val_loss: .6f}, Val MSE (real): {val_real_mse: .2f} m^2")
+
+        train_losses.append(train_loss)
+        val_losses.append(val_loss)
 
         scheduler.step(val_loss)
 
@@ -147,6 +153,8 @@ def train(args):
         # else:
         #     torch.save(model.state_dict(), f"{SAVE_DIR}/model-{epoch + 1}.pth")
         #     print("Model saved!")
+
+    plot_loss_curve(train_losses, val_losses, fold=FOLD, total_folds=kf.get_n_splits(), model_type=args.model)
 
     model.load_state_dict(torch.load(f"{SAVE_DIR}/best-model.pth"))
 
