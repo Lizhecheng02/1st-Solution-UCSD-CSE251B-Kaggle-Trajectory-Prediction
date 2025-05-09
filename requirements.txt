@@ -2,3 +2,5 @@ scikit-learn
 pandas
 kaggle
 tqdm
+matplotlib
+torch_geometric

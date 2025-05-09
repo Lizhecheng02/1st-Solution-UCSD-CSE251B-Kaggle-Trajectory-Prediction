@@ -55,7 +55,7 @@ class TrajectoryLSTM2(nn.Module):
 
         self.decoder_input_embedding = nn.Linear(2, d_model)
         # self.attn_decoder = AttentionDecoderWithMaskAndGating(d_model, nhead, gating=True, distance_threshold=20.0)
-        self.interaction_encoder = InteractionEncoder(d_model, nhead, gating=True, distance_threshold=30.0, min_agents=5, debug=True)
+        self.interaction_encoder = InteractionEncoder(d_model, nhead, gating=True, distance_threshold=30.0, min_agents=5, debug=False)
 
         self.refinement_layer = nn.Sequential(
             nn.Linear(2 * pred_steps, 512),
@@ -172,7 +172,7 @@ class TrajectoryLSTM2(nn.Module):
         agent_positions = all_agents_input[:, :, -1, 0:2]
         ego_pos = ego_input[:, -1, 0:2]
 
-        context_fused = self.interaction_decoder(
+        context_fused = self.interaction_encoder(
             query=ego_query,
             agent_contexts=enc_feat,
             ego_positions=ego_pos,
@@ -181,7 +181,10 @@ class TrajectoryLSTM2(nn.Module):
         )
 
         decoder_input = self.decoder_input_embedding(ego_pos).unsqueeze(1)
-        hidden = (context_fused.permute(1, 0, 2).contiguous(), torch.zeros_like(context_fused.permute(1, 0, 2)))
+        context_permuted = context_fused.permute(1, 0, 2).contiguous()
+        h_0 = context_permuted.repeat(4, 1, 1)
+        c_0 = torch.zeros_like(h_0)
+        hidden = (h_0, c_0)
 
         predictions = []
         for _ in range(self.pred_steps):
