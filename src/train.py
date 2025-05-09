@@ -117,7 +117,7 @@ def train(args):
     model.eval()
 
     random_indices = random.sample(range(len(val_dataset)), 4)
-    fig, axes = plt.subplots(2, 2, figsize=(20, 10))
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     axes = axes.flatten()
 
     for i, idx in enumerate(random_indices):
