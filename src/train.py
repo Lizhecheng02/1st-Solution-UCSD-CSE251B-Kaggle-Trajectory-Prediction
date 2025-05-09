@@ -29,9 +29,9 @@ def train(args):
     os.makedirs(SAVE_DIR, exist_ok=True)
     print(f"Saving models to {SAVE_DIR}")
 
-    train_npz = np.load("./train.npz")
+    train_npz = np.load("../data/train.npz")
     train_data = train_npz["data"]
-    test_npz = np.load("./test_input.npz")
+    test_npz = np.load("../data/test_input.npz")
     test_data = test_npz["data"]
 
     print(train_data.shape, test_data.shape)
