@@ -53,6 +53,9 @@ def train(args):
         model = TransformerNet().to(device)
     else:
         raise ValueError(f"Model {args.model} Not Found")
+    
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Total Parameters: {total_params}")
 
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)

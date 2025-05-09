@@ -4,7 +4,8 @@ import torch.nn as nn
 
 class LSTMNet(nn.Module):
     def __init__(self, input_dim=6, hidden_dim=128, output_dim=60 * 2):
-        super().__init__()
+        super(LSTMNet, self).__init__()
+
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers=2, batch_first=True, bidirectional=True)
         self.norm = nn.LayerNorm(hidden_dim * 2)
         self.dropout = nn.Dropout(0.1)
