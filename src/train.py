@@ -65,7 +65,7 @@ def train(args):
     val_maes = []
     val_mses = []
 
-    for epoch in tqdm.tqdm(range(args.num_epochs), desc="Training"):
+    for epoch in tqdm(range(args.num_epochs), desc="Training"):
         model.train()
         train_loss = 0
         for batch in train_dataloader:
@@ -105,7 +105,7 @@ def train(args):
         val_mses.append(val_mse)
         scheduler.step()
 
-        tqdm.tqdm.write(f"Epoch {epoch:03d} | Learning rate {optimizer.param_groups[0]["lr"]:.6f} | train normalized MSE {train_loss:8.4f} | val normalized MSE {val_loss:8.4f}, | val MAE {val_mae:8.4f} | val MSE {val_mse:8.4f}")
+        tqdm.write(f"Epoch {epoch:03d} | Learning rate {optimizer.param_groups[0]['lr']:.6f} | train normalized MSE {train_loss:8.4f} | val normalized MSE {val_loss:8.4f}, | val MAE {val_mae:8.4f} | val MSE {val_mse:8.4f}")
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             torch.save(model.state_dict(), f"{SAVE_DIR}/best_model.pt")
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_folds", type=int, default=10, help="Number of folds")
     parser.add_argument("--fold", type=int, default=0, help="Fold number")
     parser.add_argument("--model", type=str, default="TransformerNet", help="Model to use")
-    parser.add_argument("--scale", type=str, default="0", help="GPU ID to use")
+    parser.add_argument("--scale", type=float, default=5.0, help="Scale factor")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=400, help="Number of epochs")
     parser.add_argument("--learning_rate", type=float, default=5e-4, help="Learning rate")
