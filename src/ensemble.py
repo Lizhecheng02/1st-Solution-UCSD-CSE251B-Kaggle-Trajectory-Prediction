@@ -33,7 +33,7 @@ def ensemble_submissions(submission_dir, output_path):
     print(f"Ensembled submission saved to {output_path}")
 
 
-submission_dir = ["./models/0509"]
+submission_dir = ["./models/0509-2/val_mse_scale_1.0"]
 output_path = "ensemble_submission.csv"
 
 

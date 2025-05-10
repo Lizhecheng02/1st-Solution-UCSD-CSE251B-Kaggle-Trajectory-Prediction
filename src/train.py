@@ -48,9 +48,19 @@ def train(args):
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=lambda x: Batch.from_data_list(x))
 
     if args.model == "LSTMNet":
-        model = LSTMNet().to(device)
+        model = LSTMNet(
+            input_dim=args.input_dim,
+            hidden_dim=args.hidden_dim,
+            output_dim=args.output_dim
+        ).to(device)
     elif args.model == "TransformerNet":
-        model = TransformerNet().to(device)
+        model = TransformerNet(
+            input_dim=args.input_dim,
+            model_dim=args.hidden_dim,
+            output_dim=args.output_dim,
+            nhead=args.nhead,
+            num_layers=args.num_layers
+        ).to(device)
     else:
         raise ValueError(f"Model {args.model} Not Found")
 
@@ -86,7 +96,7 @@ def train(args):
         val_loss = 0
         val_mae = 0
         val_mse = 0
-        
+
         with torch.no_grad():
             for batch in val_dataloader:
                 batch = batch.to(device)
@@ -169,6 +179,11 @@ if __name__ == "__main__":
     parser.add_argument("--n_folds", type=int, default=10, help="Number of folds")
     parser.add_argument("--fold", type=int, default=0, help="Fold number")
     parser.add_argument("--model", type=str, default="TransformerNet", help="Model to use")
+    parser.add_argument("--input_dim", type=int, default=6, help="Input dimension")
+    parser.add_argument("--hidden_dim", type=int, default=128, help="Hidden dimension")
+    parser.add_argument("--output_dim", type=int, default=60 * 2, help="Output dimension")
+    parser.add_argument("--nhead", type=int, default=8, help="Number of attention heads")
+    parser.add_argument("--num_layers", type=int, default=4, help="Number of layers")
     parser.add_argument("--scale", type=float, default=5.0, help="Scale factor")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=400, help="Number of epochs")

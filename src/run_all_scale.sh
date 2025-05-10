@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for scale in {1..10}
+for scale in {1..7}
 do
     scale_float=$(printf "%.1f" $scale)
     echo "Starting experiments for scale $scale_float"
@@ -26,7 +26,7 @@ do
             --weight_decay 1e-4 \
             --step_size 80 \
             --gamma 0.4 \
-            --save_dir ./models/scale_$scale_float &
+            --save_dir ./models/val_mse_scale_$scale_float &
 
         sleep 5
     done

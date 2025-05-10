@@ -8,7 +8,7 @@ class LSTMNet(nn.Module):
 
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers=2, batch_first=True, bidirectional=True)
         self.norm = nn.LayerNorm(hidden_dim * 2)
-        self.dropout = nn.Dropout(0.1)
+        self.dropout = nn.Dropout(0.2)
         self.fc = nn.Linear(hidden_dim * 2, output_dim)
 
     def forward(self, data):
