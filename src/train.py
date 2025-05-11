@@ -9,6 +9,7 @@ import random
 import pandas as pd
 import matplotlib.pyplot as plt
 import warnings
+import json
 from torch_geometric.data import DataLoader, Batch
 from dataset import TrajectoryDatasetTrain, TrajectoryDatasetTest
 from init import seed_everything, get_device
@@ -128,6 +129,13 @@ def train(args):
             print(f"The best model saved! - epoch {epoch}")
 
     plot_loss_curve(train_losses, val_losses, val_maes, val_mses, args.fold, args.n_folds, args.model)
+
+    result_dict = vars(args).copy()
+    result_dict["best_val_mse_loss"] = best_val_mse_loss
+
+    json_path = os.path.join(SAVE_DIR, "config.json")
+    with open(json_path, "w") as f:
+        json.dump(result_dict, f, indent=4)
 
     model.load_state_dict(torch.load(f"{SAVE_DIR}/best_model.pt"))
     model.eval()
