@@ -27,7 +27,7 @@ class TransformerNet(nn.Module):
         super(TransformerNet, self).__init__()
 
         self.input_proj = nn.Linear(input_dim, model_dim)
-        encoder_layer = nn.TransformerEncoderLayer(d_model=model_dim, nhead=nhead, dim_feedforward=256, dropout=0.2, batch_first=True)
+        encoder_layer = nn.TransformerEncoderLayer(d_model=model_dim, nhead=nhead, dim_feedforward=model_dim * 4, dropout=0.2, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
 
         self.pos_embedding = nn.Parameter(torch.randn(1, 50, model_dim))
