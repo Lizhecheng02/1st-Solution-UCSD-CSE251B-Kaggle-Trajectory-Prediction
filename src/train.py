@@ -13,7 +13,7 @@ import json
 from torch_geometric.data import DataLoader, Batch
 from dataset import TrajectoryDatasetTrain, TrajectoryDatasetTest
 from init import seed_everything, get_device
-from models import LSTMNet, TransformerNet
+from models import LSTMNet, TransformerNet, InteractionTransformer, InteractionTransformerWithGAT, SpatioTemporalTransformer
 from tqdm import tqdm
 from utils import plot_trajectory, plot_loss_curve, compute_ade_fde, compute_weighted_loss
 from sklearn.model_selection import KFold
@@ -52,6 +52,7 @@ def train(args):
         model = LSTMNet(
             input_dim=args.input_dim,
             hidden_dim=args.hidden_dim,
+            num_layers=args.num_layers,
             output_dim=args.output_dim
         ).to(device)
     elif args.model == "TransformerNet":
@@ -61,6 +62,42 @@ def train(args):
             output_dim=args.output_dim,
             nhead=args.nhead,
             num_layers=args.num_layers
+        ).to(device)
+    elif args.model == "InteractionTransformer":
+        model = InteractionTransformer(
+            input_dim=args.input_dim,
+            model_dim=args.hidden_dim,
+            hist_len=50,
+            num_agents=50,
+            pred_len=60,
+            nhead=args.nhead,
+            time_layers=args.time_layers,
+            agent_layers=args.agent_layers,
+            dropout=args.dropout
+        ).to(device)
+    elif args.model == "InteractionTransformerWithGAT":
+        model = InteractionTransformerWithGAT(
+            input_dim=args.input_dim,
+            model_dim=args.hidden_dim,
+            hist_len=50,
+            num_agents=50,
+            pred_len=60,
+            nhead=args.nhead,
+            time_layers=args.time_layers,
+            agent_layers=args.agent_layers,
+            dropout=args.dropout,
+            k_neigh=args.k_neigh
+        ).to(device)
+    elif args.model == "SpatioTemporalTransformer":
+        model = SpatioTemporalTransformer(
+            input_dim=args.input_dim,
+            model_dim=args.hidden_dim,
+            hist_len=50,
+            num_agents=50,
+            pred_len=60,
+            nhead=args.nhead,
+            num_layers=args.num_layers,
+            dropout=args.dropout
         ).to(device)
     else:
         raise ValueError(f"Model {args.model} Not Found")
@@ -89,7 +126,7 @@ def train(args):
             loss = criterion(pred, y)
             optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             train_loss += loss.item()
 
@@ -192,6 +229,10 @@ if __name__ == "__main__":
     parser.add_argument("--output_dim", type=int, default=60 * 2, help="Output dimension")
     parser.add_argument("--nhead", type=int, default=8, help="Number of attention heads")
     parser.add_argument("--num_layers", type=int, default=4, help="Number of layers")
+    parser.add_argument("--time_layers", type=int, default=4, help="Number of time layers")
+    parser.add_argument("--agent_layers", type=int, default=4, help="Number of agent layers")
+    parser.add_argument("--k_neigh", type=int, default=10, help="Number of neighbors")
+    parser.add_argument("--dropout", type=float, default=0.2, help="Dropout rate")
     parser.add_argument("--scale", type=float, default=5.0, help="Scale factor")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=400, help="Number of epochs")
