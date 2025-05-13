@@ -74,6 +74,8 @@ class InteractionTransformer(nn.Module):
             nhead=nhead,
             dim_feedforward=model_dim * 4,
             dropout=dropout,
+            # activation=nn.GELU(),
+            # layer_norm_eps=1e-5,
             batch_first=True
         )
         self.time_encoder = nn.TransformerEncoder(time_enc_layer, num_layers=time_layers)
@@ -84,6 +86,8 @@ class InteractionTransformer(nn.Module):
             nhead=nhead,
             dim_feedforward=model_dim * 4,
             dropout=dropout,
+            # activation=nn.GELU(),
+            # layer_norm_eps=1e-5,
             batch_first=True
         )
         self.agent_encoder = nn.TransformerEncoder(agent_enc_layer, num_layers=agent_layers)
