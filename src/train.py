@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import warnings
 import json
 from torch_geometric.data import DataLoader, Batch
-from dataset import TrajectoryDatasetTrain, TrajectoryDatasetTest
+from dataset import TrajectoryDatasetTrain, TrajectoryDatasetTest, TrajectoryDatasetTrain2, TrajectoryDatasetTest2, TrajectoryDatasetTrain3, TrajectoryDatasetTest3
 from init import seed_everything, get_device
 from models import LSTMNet, TransformerNet, InteractionTransformer, InteractionTransformerWithGAT, SpatioTemporalTransformer
 from tqdm import tqdm
@@ -42,8 +42,17 @@ def train(args):
     folds = list(kf.split(train_data))
     train_idx, val_idx = folds[args.fold]
 
-    train_dataset = TrajectoryDatasetTrain([train_data[i] for i in train_idx], scale=args.scale, augment=True)
-    val_dataset = TrajectoryDatasetTrain([train_data[i] for i in val_idx], scale=args.scale, augment=False)
+    if args.data_version == "v1":
+        train_dataset = TrajectoryDatasetTrain([train_data[i] for i in train_idx], scale=args.scale, augment=True)
+        val_dataset = TrajectoryDatasetTrain([train_data[i] for i in val_idx], scale=args.scale, augment=False)
+    elif args.data_version == "v2":
+        train_dataset = TrajectoryDatasetTrain2([train_data[i] for i in train_idx], scale=args.scale, augment=True)
+        val_dataset = TrajectoryDatasetTrain2([train_data[i] for i in val_idx], scale=args.scale, augment=False)
+    elif args.data_version == "v3":
+        train_dataset = TrajectoryDatasetTrain3([train_data[i] for i in train_idx], scale=args.scale, augment=True)
+        val_dataset = TrajectoryDatasetTrain3([train_data[i] for i in val_idx], scale=args.scale, augment=False)
+    else:
+        raise ValueError(f"Data version {args.data_version} Not Found")
 
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, collate_fn=lambda x: Batch.from_data_list(x))
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=lambda x: Batch.from_data_list(x))
@@ -124,6 +133,7 @@ def train(args):
             pred = model(batch)
             y = batch.y.view(batch.num_graphs, 60, 2)
             loss = criterion(pred, y)
+            # loss = compute_weighted_loss(pred, y, mode="sqrt")
             optimizer.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
@@ -200,7 +210,15 @@ def train(args):
     model = model.to(device)
     model.eval()
 
-    test_dataset = TrajectoryDatasetTest(test_data, scale=args.scale)
+    if args.data_version == "v1":
+        test_dataset = TrajectoryDatasetTest(test_data, scale=args.scale)
+    elif args.data_version == "v2":
+        test_dataset = TrajectoryDatasetTest2(test_data, scale=args.scale)
+    elif args.data_version == "v3":
+        test_dataset = TrajectoryDatasetTest3(test_data, scale=args.scale)
+    else:
+        raise ValueError(f"Data version {args.data_version} Not Found")
+
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=lambda xs: Batch.from_data_list(xs))
 
     pred_list = []
@@ -221,10 +239,11 @@ def train(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Trajectory Prediction")
     parser.add_argument("--gpu", type=str, default="0", help="GPU ID to use")
+    parser.add_argument("--data_version", type=str, default="v3", help="Data version")
     parser.add_argument("--n_folds", type=int, default=10, help="Number of folds")
     parser.add_argument("--fold", type=int, default=0, help="Fold number")
     parser.add_argument("--model", type=str, default="TransformerNet", help="Model to use")
-    parser.add_argument("--input_dim", type=int, default=6, help="Input dimension")
+    parser.add_argument("--input_dim", type=int, default=31, help="Input dimension")
     parser.add_argument("--hidden_dim", type=int, default=128, help="Hidden dimension")
     parser.add_argument("--output_dim", type=int, default=60 * 2, help="Output dimension")
     parser.add_argument("--nhead", type=int, default=8, help="Number of attention heads")
@@ -233,10 +252,10 @@ if __name__ == "__main__":
     parser.add_argument("--agent_layers", type=int, default=4, help="Number of agent layers")
     parser.add_argument("--k_neigh", type=int, default=10, help="Number of neighbors")
     parser.add_argument("--dropout", type=float, default=0.2, help="Dropout rate")
-    parser.add_argument("--scale", type=float, default=5.0, help="Scale factor")
+    parser.add_argument("--scale", type=float, default=1.0, help="Scale factor")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--num_epochs", type=int, default=400, help="Number of epochs")
-    parser.add_argument("--learning_rate", type=float, default=5e-4, help="Learning rate")
+    parser.add_argument("--learning_rate", type=float, default=2.5e-4, help="Learning rate")
     parser.add_argument("--weight_decay", type=float, default=1e-4, help="Weight decay")
     parser.add_argument("--step_size", type=int, default=80, help="Step size")
     parser.add_argument("--gamma", type=float, default=0.4, help="Gamma")
