@@ -49,8 +49,8 @@ def ensemble_submissions(submission_dirs, output_path, weights=None):
     print(f"Ensembled submission saved to {output_path}")
 
 
-submission_dir = ["./models/0511-2", "./models/0512-31F", "./models/0517-55F"]
-weights = [0.6, 0.2, 0.2]
+submission_dir = ["./models/0511-6F", "./models/0512-10F", "./models/0512-31F"]
+weights = [0.33, 0.34, 0.33]
 output_path = "ensemble_submission.csv"
 
 ensemble_submissions(submission_dir, output_path, weights)

@@ -2,3 +2,5 @@
 *.pth
 *.csv
 __pycache__/
+*.pptx
+*.pt
