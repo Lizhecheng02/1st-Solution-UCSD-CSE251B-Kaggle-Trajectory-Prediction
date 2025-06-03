@@ -4,3 +4,4 @@
 __pycache__/
 *.pptx
 *.pt
+src/models/**/trajectory_example.png

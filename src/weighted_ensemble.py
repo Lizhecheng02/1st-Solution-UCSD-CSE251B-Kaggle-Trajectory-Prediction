@@ -50,7 +50,7 @@ def ensemble_submissions(submission_dirs, output_path, weights=None):
 
 
 submission_dir = ["./models/0511-6F", "./models/0512-10F", "./models/0512-31F"]
-weights = [0.33, 0.34, 0.33]
+weights = [0.30, 0.40, 0.30]
 output_path = "ensemble_submission.csv"
 
 ensemble_submissions(submission_dir, output_path, weights)
